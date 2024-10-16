@@ -1,0 +1,281 @@
+definitions:
+  controllers.AuthDetails:
+    properties:
+      password:
+        example: password123
+        type: string
+      username:
+        example: userman
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  controllers.CreateTaskInput:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  controllers.SuccessResponse:
+    properties:
+      message:
+        example: Пользователь успешно зарегистрирован
+        type: string
+    type: object
+  controllers.TokenResponse:
+    properties:
+      token:
+        example: your_token
+        type: string
+    type: object
+  controllers.UpdateTaskInput:
+    properties:
+      description:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  gin.H:
+    additionalProperties: {}
+    type: object
+  models.Status:
+    enum:
+    - начата
+    - завершена
+    type: string
+    x-enum-varnames:
+    - StatusStarted
+    - StatusCompleted
+  models.Task:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      status:
+        $ref: '#/definitions/models.Status'
+      title:
+        type: string
+      updatedAt:
+        type: string
+      userID:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        example: 1
+        type: integer
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:8181
+info:
+  contact:
+    email: karimov199872@gmail.com
+    name: Шукурилло
+  description: Это программа для создания и отслеживания задач
+  title: Task API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Авторизация пользователя и выдача ему токена
+      parameters:
+      - description: Данные пользователя для авторизации
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.AuthDetails'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.TokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Авторизация
+      tags:
+      - Аутентификация
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Регистрирует пользователя с указанными username и password
+      parameters:
+      - description: Данные пользователя для регистрации
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controllers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Регистрация пользователя
+      tags:
+      - Аутентификация
+  /tasks:
+    get:
+      description: Даёт список задач пользователя
+      parameters:
+      - description: Bearer токен
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Task'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Список задач
+      tags:
+      - Задачи
+    post:
+      consumes:
+      - application/json
+      description: Создает задачу
+      parameters:
+      - description: Bearer токен
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Данные для создания задачи
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CreateTaskInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Создание задачи
+      tags:
+      - Задачи
+  /tasks/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Обновляет название, описание и статус задачи
+      parameters:
+      - description: Bearer токен
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: ID задачи
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные задачи для обновления
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.UpdateTaskInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Обновление задачи
+      tags:
+      - Задачи
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
